@@ -14,7 +14,7 @@ plugins:
 provider:
   name: google
   runtime: python37
-  project: <projectnamehere-1234>
+  project: bubble-07
   credentials: ~/.gcloud/keyfile.json # path must be absolute
 
 functions:
