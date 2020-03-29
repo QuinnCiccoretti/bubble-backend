@@ -4,7 +4,7 @@ const accountSid = functions.config().twilio.account_sid;
 const authToken = functions.config().twilio.auth_token;
 const twilioClient = require('twilio')(accountSid, authToken);
 
-const KEY = require('./key.js');
+const KEY = functions.config().geocode.key;
 
 admin.initializeApp();
 
