@@ -35,6 +35,14 @@ exports.addUser = functions.https.onRequest(async (req, res) => {
   res.send(phone);
 });
 
-// exports.addNeighbor = functions.https.onRequest(async (req, res) => {
+exports.addNeighbor = functions.https.onRequest(async (req, res) => {
+  const myphone = req.query.ours;
+  const theirphone = req.query.theirs;
+  // const timestamp = admin.database.ServerValue.TIMESTAMP
+  let snapshot = admin.database().ref('users/'+myphone);
+  snapshot.push({
+    'phone': theirphone
+  });
+  res.send(theirphone);
 
-// })
+})
