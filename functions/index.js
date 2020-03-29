@@ -4,7 +4,7 @@ const accountSid = functions.config().twilio.account_sid;
 const authToken = functions.config().twilio.auth_token;
 const twilioClient = require('twilio')(accountSid, authToken);
 
-const KEY = functions.config().geocode.key;
+const GEOCODE_KEY = functions.config().geocode.key;
 
 admin.initializeApp();
 
@@ -78,22 +78,38 @@ exports.broadcast = functions.https.onRequest(async (req, res) => {
         // console.log(key);
         // childData will be the actual contents of the child
         var childData = childSnapshot.val();
-        var theirphones = childData.phone;
-        // console.log(theirphones);
-        // console.log(key !== "name" && enable_twilio);
-        if(key !== "name" && enable_twilio){
-          // console.log("twilio enabled!");
-          twilioClient.messages
-            .create({
-               body: 'A person who you have approached recently has contracted the coronavirus. Self quarantine is advised.',
-               from: '+12024103519',
-               to: "+1"+theirphones
-             })
-            .then(message => console.log(message.sid))
-            .catch(error => console.log(error));
-        }
-    });
-    return null;
-  }).catch();
-  res.send("myphone");
+      	notifySingleUser(key, childData, enable_twilio);
+    	});
+    	return null;
+	}).catch((err)=>{
+		console.log(err);
+	});
+	
+	res.send("myphone");
 });
+
+async function notifySingleUser(key, childData, enable_twilio){
+	var theirphone = childData.phone;
+    console.log(theirphone);
+    // console.log(key !== "name" && enable_twilio);
+    const url1 = "https://maps.google.com/maps?q=";
+    var lat = childData.latitude;
+    var long = childData.longitude;
+    var url_full = url1 + lat + "," + long;
+
+
+    if(key !== "name" && enable_twilio){
+      // console.log("twilio enabled!");
+      const alert_str1 = 'Someone you\'ve been near has contracted coronavirus. ';
+      const alert_str2 = 'Consult CDC guidelines. Location of encounter: ';
+      twilioClient.messages
+        .create({
+           body: alert_str1 + alert_str2 + url_full,
+           from: '+12024103519',
+           to: "+1"+theirphone
+         })
+        .then(message => console.log(message.sid))
+        .catch(error => console.log(error));
+    }
+}
+
