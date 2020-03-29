@@ -1,8 +1,12 @@
+// firebase
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+
+// Twilio
 const accountSid = functions.config().twilio.account_sid;
 const authToken = functions.config().twilio.auth_token;
 const twilioClient = require('twilio')(accountSid, authToken);
+
 
 const GEOCODE_KEY = functions.config().geocode.key;
 
@@ -57,6 +61,9 @@ exports.addNeighbor = functions.https.onRequest(async (req, res) => {
 
 });
 
+
+
+
 // broadcast alarm to everyone you have been near
 exports.broadcast = functions.https.onRequest(async (req, res) => {
   // console.log(KEY.key);
@@ -69,15 +76,19 @@ exports.broadcast = functions.https.onRequest(async (req, res) => {
   // console.log(enable_twilio);
 
   // source: https://firebase.google.com/docs/reference/js/firebase.database.DataSnapshot
+  // url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="40.714224,-73.961452&
+  
   var query = admin.database().ref('users/'+myphone).orderByKey();
   query.once("value")
     .then(function(snapshot) {
       snapshot.forEach(function(childSnapshot) {
+        https.get('')
         // console.log('hi');
         var key = childSnapshot.key;
         // console.log(key);
         // childData will be the actual contents of the child
         var childData = childSnapshot.val();
+
       	notifySingleUser(key, childData, enable_twilio);
     	});
     	return null;
@@ -112,4 +123,5 @@ async function notifySingleUser(key, childData, enable_twilio){
         .catch(error => console.log(error));
     }
 }
+
 
