@@ -116,3 +116,6 @@ dist
 
 # Andrew's venv
 andrewsvenv/
+
+# Google API key
+functions/key.js

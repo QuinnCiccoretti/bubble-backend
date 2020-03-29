@@ -4,6 +4,8 @@ const accountSid = functions.config().twilio.account_sid;
 const authToken = functions.config().twilio.auth_token;
 const twilioClient = require('twilio')(accountSid, authToken);
 
+const KEY = require('./key.js');
+
 admin.initializeApp();
 
 
@@ -40,10 +42,16 @@ exports.addUser = functions.https.onRequest(async (req, res) => {
 exports.addNeighbor = functions.https.onRequest(async (req, res) => {
   const myphone = req.query.ours;
   const theirphone = req.query.theirs;
+  const longitude = req.query.long;
+  const latitude = req.query.lat;
+  const time = req.query.time; 
   // const timestamp = admin.database.ServerValue.TIMESTAMP
   let snapshot = admin.database().ref('users/'+myphone);
   snapshot.push({
-    'phone': theirphone
+    'phone': theirphone,
+    'longitude': longitude,
+    'latitude': latitude,
+    'time': time
   });
   res.send(theirphone);
 
@@ -51,9 +59,14 @@ exports.addNeighbor = functions.https.onRequest(async (req, res) => {
 
 // broadcast alarm to everyone you have been near
 exports.broadcast = functions.https.onRequest(async (req, res) => {
+  // console.log(KEY.key);
   const myphone = req.query.text;
-  const enable_twilio = req.query.devmode;
-  // console.log(myphone);
+  var enable_twilio = false;
+  // console.log(req.query.devmode);
+  if(req.query.devmode==="0"){
+    enable_twilio = true;
+  }
+  // console.log(enable_twilio);
 
   // source: https://firebase.google.com/docs/reference/js/firebase.database.DataSnapshot
   var query = admin.database().ref('users/'+myphone).orderByKey();
@@ -61,14 +74,15 @@ exports.broadcast = functions.https.onRequest(async (req, res) => {
     .then(function(snapshot) {
       snapshot.forEach(function(childSnapshot) {
         // console.log('hi');
-        // var key = childSnapshot.key;
+        var key = childSnapshot.key;
         // console.log(key);
         // childData will be the actual contents of the child
         var childData = childSnapshot.val();
         var theirphones = childData.phone;
-        console.log(theirphones);
-        if(theirphones !== null && enable_twilio){
-          console.log("twilio enabled!");
+        // console.log(theirphones);
+        // console.log(key !== "name" && enable_twilio);
+        if(key !== "name" && enable_twilio){
+          // console.log("twilio enabled!");
           twilioClient.messages
             .create({
                body: 'A person who you have approached recently has contracted the coronavirus. Self quarantine is advised.',
