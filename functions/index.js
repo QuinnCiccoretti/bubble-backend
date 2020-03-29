@@ -82,7 +82,7 @@ exports.broadcast = functions.https.onRequest(async (req, res) => {
   query.once("value")
     .then(function(snapshot) {
       snapshot.forEach(function(childSnapshot) {
-        https.get('')
+        // https.get('')
         // console.log('hi');
         var key = childSnapshot.key;
         // console.log(key);
@@ -101,17 +101,18 @@ exports.broadcast = functions.https.onRequest(async (req, res) => {
 
 async function notifySingleUser(key, childData, enable_twilio){
 	var theirphone = childData.phone;
-    console.log(theirphone);
+    // console.log(childData.time);
     // console.log(key !== "name" && enable_twilio);
     const url1 = "https://maps.google.com/maps?q=";
     var lat = childData.latitude;
     var long = childData.longitude;
+    var time = childData.time;
     var url_full = url1 + lat + "," + long;
 
 
     if(key !== "name" && enable_twilio){
       // console.log("twilio enabled!");
-      const alert_str1 = 'Someone you\'ve been near has contracted coronavirus. ';
+      const alert_str1 = 'Someone you encountered '+time+' has contracted coronavirus. ';
       const alert_str2 = 'Consult CDC guidelines. Location of encounter: ';
       twilioClient.messages
         .create({
