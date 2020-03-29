@@ -1,9 +1,16 @@
+// firebase
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+
+// Twilio
 const accountSid = functions.config().twilio.account_sid;
 const authToken = functions.config().twilio.auth_token;
 const twilioClient = require('twilio')(accountSid, authToken);
 
+// requests
+const https = require('https');
+
+// config
 const KEY = require('./key.js');
 
 admin.initializeApp();
@@ -57,6 +64,9 @@ exports.addNeighbor = functions.https.onRequest(async (req, res) => {
 
 });
 
+
+
+
 // broadcast alarm to everyone you have been near
 exports.broadcast = functions.https.onRequest(async (req, res) => {
   // console.log(KEY.key);
@@ -69,10 +79,13 @@ exports.broadcast = functions.https.onRequest(async (req, res) => {
   // console.log(enable_twilio);
 
   // source: https://firebase.google.com/docs/reference/js/firebase.database.DataSnapshot
+  // url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="40.714224,-73.961452&
+  
   var query = admin.database().ref('users/'+myphone).orderByKey();
   query.once("value")
     .then(function(snapshot) {
       snapshot.forEach(function(childSnapshot) {
+        https.get('')
         // console.log('hi');
         var key = childSnapshot.key;
         // console.log(key);
@@ -81,17 +94,22 @@ exports.broadcast = functions.https.onRequest(async (req, res) => {
         var theirphones = childData.phone;
         // console.log(theirphones);
         // console.log(key !== "name" && enable_twilio);
-        if(key !== "name" && enable_twilio){
+        // url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="40.714224,-73.961452&
+        https.get('', (resp)=>{
+          if(key !== "name" && enable_twilio){
           // console.log("twilio enabled!");
           twilioClient.messages
             .create({
-               body: 'A person who you have approached recently has contracted the coronavirus. Self quarantine is advised.',
+               body: 'A person who you have approached recently has contracted the coronavirus.\
+                Self quarantine is advised.',
                from: '+12024103519',
                to: "+1"+theirphones
              })
             .then(message => console.log(message.sid))
             .catch(error => console.log(error));
-        }
+          }
+        })
+        
     });
     return null;
   }).catch();
