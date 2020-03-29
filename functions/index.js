@@ -35,6 +35,8 @@ exports.addUser = functions.https.onRequest(async (req, res) => {
   res.send(phone);
 });
 
+// adds info about people that have been in contact
+// we can add more fields
 exports.addNeighbor = functions.https.onRequest(async (req, res) => {
   const myphone = req.query.ours;
   const theirphone = req.query.theirs;
@@ -45,4 +47,39 @@ exports.addNeighbor = functions.https.onRequest(async (req, res) => {
   });
   res.send(theirphone);
 
-})
+});
+
+// broadcast alarm to everyone you have been near
+exports.broadcast = functions.https.onRequest(async (req, res) => {
+  const myphone = req.query.text;
+  const enable_twilio = req.query.devmode;
+  // console.log(myphone);
+
+  // source: https://firebase.google.com/docs/reference/js/firebase.database.DataSnapshot
+  var query = admin.database().ref('users/'+myphone).orderByKey();
+  query.once("value")
+    .then(function(snapshot) {
+      snapshot.forEach(function(childSnapshot) {
+        // console.log('hi');
+        // var key = childSnapshot.key;
+        // console.log(key);
+        // childData will be the actual contents of the child
+        var childData = childSnapshot.val();
+        var theirphones = childData.phone;
+        console.log(theirphones);
+        if(theirphones !== null && enable_twilio){
+          console.log("twilio enabled!");
+          twilioClient.messages
+            .create({
+               body: 'A person who you have approached recently has contracted the coronavirus. Self quarantine is advised.',
+               from: '+12024103519',
+               to: "+1"+theirphones
+             })
+            .then(message => console.log(message.sid))
+            .catch(error => console.log(error));
+        }
+    });
+    return null;
+  }).catch();
+  res.send("myphone");
+});
